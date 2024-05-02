@@ -1,0 +1,29 @@
+# Use a base image with Node.js installed
+FROM node:alpine as build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json into the container
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the entire application directory into the container
+COPY . .
+
+# Build the React application
+RUN npm run build
+
+# Use a lightweight base image
+FROM nginx:alpine
+
+# Copy the built React application from the previous stage into the nginx image
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose the port that nginx listens on (default is 80)
+EXPOSE 80
+
+# Start nginx when the container starts
+CMD ["nginx", "-g", "daemon off;"]
